@@ -1,0 +1,79 @@
+# DoomsdayVerify 正版验证插件 配置文件
+# 作者: MrXiaoM
+# 验证部分代码来自 Hello Minecraft! Launcher 3
+
+# 验证成功时执行的命令，支持使用 PAPI 变量
+# 命令全部都要加前缀，否则插件不读，前缀列表如下
+# message:私信
+# message-all:公告
+# player:玩家执行命令
+# console:控制台执行命令
+# sound:音效,音量,音调
+# action:快捷栏上出现的ActionBar消息
+# title:标题消息
+# subtitle:副标题消息
+# 我懒得写，所以标题和副标题都是0.5秒淡出淡入，持续2秒
+
+# 微软登录
+commands-ms:
+- 'message:&a你已成功通过正版验证'
+- 'message-all:&7[&c公告&7] &e%player_name% &a已成功通过正版验证 (微软账户)'
+# mojang登录
+commands-mojang:
+- 'message:&a你已成功通过正版验证'
+- 'message-all:&7[&c公告&7] &e%player_name% &a已成功通过正版验证 (mojang账户)'
+
+# 允许失败次数，超过这个次数将无法再进行正版验证
+max-verify-times: 3
+
+# 验证时是否忽略玩家名称大小写
+ignore-case: false
+
+# 是否可以让玩家验证微软账号
+enable-microsoft: true
+# 是否可以让玩家验证mojang账号
+enable-mojang: true
+
+messages:
+  reload: '配置文件已重载'
+  help:
+  - '&b正版验证 (验证的账号要和你登录的游戏账号名称一致)'
+  - '&a/dv mojang [邮箱] [密码] &e验证mojang正版'
+  - '&a/ms &e验证微软账号'
+  help-op:
+  - '&a/dv time [玩家] [次数] &e设置玩家验证失败次数'
+  - '&a/dv reload &e重载插件配置文件'
+  verifing: '&e你正在验证正版账号中， 不能发起新的验证请求'
+  verified: '&b你已经验证过了， 无需重复验证'
+  no-time: '&c你的验证次数已耗尽， 无法再次请求验证'
+  no-player: '&c该玩家不存在'
+  no-positive-integer: '&c请输入一个正整数'
+  set-time: '&a已设置玩家 &e%player% &a的失败次数为 &e%time%'
+  error:
+    INVALID_CODE: '&c网址提供的代码不可用， 请重新登录网页再试'
+    UHS_MISMATCHED: '&c账号的各个uhs不匹配， 无法进行登录， 请重试'
+    CLIENT_TOKEN_MISMATCHED: '&c验证前后的客户端令牌不匹配， 无法进行登录， 请重试'
+    NO_PROFILE: '&c该账号可能没有购买 Minecraft Java Edition， 无法用于验证'
+    NO_SELECTED: '&c该账号还没有选择它所使用的配置， 无法用于验证'
+    UNKNOWN: '&c发生了一个错误:&e %extra%'
+  mojang:
+    help:
+    - '&e用法: &a/dv mojang [邮箱] [密码]'
+    disabled: '&c服务器管理员已禁止验证mojang账户'
+    start: '&a正在开始验证…'
+    name-mismatched: '&c该正版账户的用户名和你的游戏名不吻合， 无法用于验证'
+  microsoft:
+    help:
+    - '&e请打开聊天栏点击下面的链接并登录'
+    - '  <LINK>'
+    - '&e登录之后会转跳到空白页，如果你浏览器有登录过微软账号'
+    - '&e也会转跳到空白页。把空白页的链接粘贴到下面的命令里'
+    - '&a/ms [链接]'
+    - '&e然后发送即可验证微软账号，下面是个示例命令:'
+    - '  &7/ms https://login.live.com/oauth20_desktop.srf?code=M.R3_BAY.xxxx'
+    disabled: '&c服务器管理员已禁止验证微软账户'
+    link-text: '&b&l&n微软登录链接(鼠标点击打开)'
+    link-hover: '&e点击打开微软登录链接'
+    invalid-link: '&c无效的登录链接'
+    start: '&a正在开始验证…'
+    name-mismatched: '&c该正版账户的用户名和你的游戏名不吻合， 无法用于验证'

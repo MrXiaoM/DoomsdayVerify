@@ -1,0 +1,11 @@
+name: DoomsdayVerify
+main: fun.doomteam.verify.Main
+version: 1.0
+author: DoomsdaySociety
+softdepend:
+- PlaceholderAPI
+- CoreProtect
+commands:
+  doomsdayverify:
+    descrption: main command
+    aliases: [dv, ms]
