@@ -181,12 +181,20 @@ public class Main extends JavaPlugin implements Listener {
 		if (label.equalsIgnoreCase("doomsdayverify") || label.equalsIgnoreCase("dv")) {
 			if (args.length >= 1) {
 				if (args[0].equalsIgnoreCase("reload")) {
+					if(!sender.hasPermission("doomsdayverify.reload")) {
+						sender.sendMessage(msg("no-permission"));
+						return true;
+					}
 					this.saveDefaultConfig();
 					this.reloadConfig();
 					sender.sendMessage(msg("reload"));
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("time") && args.length == 3) {
+					if(!sender.hasPermission("doomsdayverify.settime")) {
+						sender.sendMessage(msg("no-permission"));
+						return true;
+					}
 					String player = args[1];
 					int time = Util.strToInt(args[2], -1);
 					if (Bukkit.getPlayer(player) == null) {

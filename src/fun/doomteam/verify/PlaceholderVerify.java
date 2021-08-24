@@ -35,6 +35,9 @@ public class PlaceholderVerify extends PlaceholderExpansion {
 		if (identifier.equalsIgnoreCase("fail_time")) {
 			return String.valueOf(main.getVerifyManager().getPlayerFailTimes(player.getName()));
 		}
+		if (identifier.equalsIgnoreCase("fail_time_remaining")) {
+			return String.valueOf(main.maxFailTime - main.getVerifyManager().getPlayerFailTimes(player.getName()));
+		}
 		return identifier;
 	}
 
