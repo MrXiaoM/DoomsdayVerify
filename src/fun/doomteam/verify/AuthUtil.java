@@ -222,9 +222,9 @@ public class AuthUtil {
 			return fail(e.getClass().getName() + ": " + (e.getMessage() == null ? "" : e.getMessage()));
 		}
 	}
-	public static LoginResult mojang(String email, String password) {
+	
+	public static LoginResult yggdrasil(String email, String password, String authUrl) {
 		try {
-			String authUrl = "https://authserver.mojang.com/authenticate";
 			String clientToken = UUID.randomUUID().toString().replace("-", "");
 			Map<String, Object> request = new HashMap<>();
         	request.put("agent", mapOf(
@@ -260,5 +260,9 @@ public class AuthUtil {
 			e.printStackTrace();
 			return fail(e.getClass().getName() + ": " + (e.getMessage() == null ? "" : e.getMessage()));
 		}
+	}
+	
+	public static LoginResult mojang(String email, String password) {
+		return yggdrasil(email, password, "https://authserver.mojang.com/authenticate");
 	}
 }

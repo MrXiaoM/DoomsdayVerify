@@ -4,7 +4,6 @@ version: 1.0
 author: DoomsdaySociety
 softdepend:
 - PlaceholderAPI
-- CoreProtect
 commands:
   doomsdayverify:
     descrption: main command

@@ -3,7 +3,6 @@ package fun.doomteam.verify;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
@@ -130,6 +129,12 @@ public class VerifyManager {
 
 	public void addPlayerFailTime(Player player) {
 		this.addPlayerFailTime(player.getName());
+		int remainingTime = this.main.maxFailTime - getPlayerFailTimes(player);
+		if(remainingTime == 0) {
+			player.sendMessage(main.msg("time-run-out"));
+		} else {
+			player.sendMessage(main.msg("time-last").replace("%time%", String.valueOf(remainingTime)));
+		}
 	}
 	
 	public void addPlayerFailTime(String player) {
@@ -153,11 +158,7 @@ public class VerifyManager {
 	}
 
 	public void putPlayer(String player) {
-		List<String> list = this.config.getStringList("verified-players");
-		if (list == null)
-			list = new ArrayList<>();
-		list.add(player);
-		this.config.set("verified-players", list);
+		this.config.set(player + ".verified", true);
 		this.saveConfig();
 	}
 

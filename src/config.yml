@@ -49,6 +49,8 @@ messages:
   no-player: '&c该玩家不存在'
   no-positive-integer: '&c请输入一个正整数'
   set-time: '&a已设置玩家 &e%player% &a的失败次数为 &e%time%'
+  time-last: '&c请注意， 你还有 %time% 次验证机会'
+  time-run-out: '&c你的验证机会已全部用完'
   error:
     INVALID_CODE: '&c网址提供的代码不可用， 请重新登录网页再试'
     UHS_MISMATCHED: '&c账号的各个uhs不匹配， 无法进行登录， 请重试'
