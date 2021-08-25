@@ -1,5 +1,7 @@
 package fun.doomteam.verify;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -28,11 +31,15 @@ public class Main extends JavaPlugin implements Listener {
 	protected boolean enableMS = true;
 	protected boolean enableBugjump = true;
 	protected int maxFailTime = 3;
-
+	private YamlConfiguration defaultConfig = new YamlConfiguration();
 	@Override
 	public void onEnable() {
 		this.saveDefaultConfig();
 		this.reloadConfig();
+		InputStream is = this.getResource("config.yml");
+		if(is != null) {
+			this.defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(is));
+		}
 		if (Util.init()) {
 			(this.placeholder = new PlaceholderVerify(this)).register();
 		}
@@ -74,14 +81,24 @@ public class Main extends JavaPlugin implements Listener {
 		else
 			this.verifyManager.reloadConfig();
 	}
-
+	
 	public VerifyManager getVerifyManager() {
 		return this.verifyManager;
 	}
-
+	
+	public String msgDefault(String key) {
+		if (!this.defaultConfig.contains("messages." + key)) {
+			return "¡ì4translate error: ¡ìcmessage." + key;
+		}
+		if (!this.defaultConfig.isString("messages." + key)) {
+			return "¡ì4wrong type: ¡ìcmessage." + key;
+		}
+		return ChatColor.translateAlternateColorCodes('&', this.defaultConfig.getString("messages." + key));
+	}
+	
 	public String msg(String key) {
 		if (!this.getConfig().contains("messages." + key)) {
-			return "¡ì4translate error: ¡ìcmessage." + key;
+			return this.msgDefault(key);
 		}
 		if (!this.getConfig().isString("messages." + key)) {
 			return "¡ì4wrong type: ¡ìcmessage." + key;
@@ -89,9 +106,23 @@ public class Main extends JavaPlugin implements Listener {
 		return ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("messages." + key));
 	}
 
+	public String[] msgsDefault(String key) {
+		if (!this.defaultConfig.contains("messages." + key)) {
+			return new String[] { "¡ì4translate error: ¡ìcmessages." + key };
+		}
+		if (!this.defaultConfig.isList("messages." + key)) {
+			return new String[] { "¡ì4wrong type: ¡ìcmessages." + key };
+		}
+		List<String> list = this.defaultConfig.getStringList("messages." + key);
+		String[] array = new String[list.size()];
+		for (int i = 0; i < list.size(); i++) {
+			array[i] = ChatColor.translateAlternateColorCodes('&', list.get(i));
+		}
+		return array;
+	}
 	public String[] msgs(String key) {
 		if (!this.getConfig().contains("messages." + key)) {
-			return new String[] { "¡ì4translate error: ¡ìcmessages." + key };
+			return this.msgsDefault(key);
 		}
 		if (!this.getConfig().isList("messages." + key)) {
 			return new String[] { "¡ì4wrong type: ¡ìcmessages." + key };

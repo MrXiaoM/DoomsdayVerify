@@ -71,6 +71,9 @@ public class AuthUtil {
 			INVALID_CODE("'code' parameter is not valid"),
 			UHS_MISMATCHED("uhs mismatched"),
 			CLIENT_TOKEN_MISMATCHED("client token mismatched"),
+			MOJANG_INVALID_CREDENTIALS("Invalid username or password"),
+			MS_NO_ACCOUNT("not have mc service"),
+			PROFILE_ERROR("profile error: "),
 			NO_PROFILE("profile not found"),
 			NO_SELECTED("no seleted profile"),
 			UNKNOWN("");
@@ -160,6 +163,10 @@ public class AuthUtil {
 							pair("TokenType", "JWT")
 					)).getString();
 			json = parser.parse(minecraftXstsResponseText).getAsJsonObject();
+			if(json.has("XErr")) {
+				// ÒÉËÆÃ»ÓÐ×¢²á Minecraft
+				return fail("Your Minecraft account is not have mc service");
+			}
 			String mcXstsUhs = json.get("DisplayClaims").getAsJsonObject()
 					.get("xui").getAsJsonArray()
 					.get(0).getAsJsonObject()
@@ -201,6 +208,9 @@ public class AuthUtil {
 	                .json(mapOf(pair("identityToken", "XBL3.0 x=" + uhs + ";" + mcXstsToken)))
 	                .accept("application/json").getString();
 	        json = parser.parse(minecraftResponseText).getAsJsonObject();
+	        if(json.get("roles").getAsJsonArray().size() == 0) {
+	        	return fail("profile not found");
+	        }
 	        String tokenType = json.get("token_type").getAsString();
 	        String accessToken = json.get("access_token").getAsString();
 	        
@@ -209,10 +219,17 @@ public class AuthUtil {
 	                .createConnection();
 	        int responseCode = conn.getResponseCode();
 	        if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
-	            fail("profile not found");
+	            return fail("profile not found");
 	        }
 	        String profileResponseText = NetworkUtils.readData(conn);
 	        json = parser.parse(profileResponseText).getAsJsonObject();
+	        if(json.has("error")){
+	        	String error = json.get("error").getAsString();
+	        	if(error.equalsIgnoreCase("not_found")) {
+	        		return fail("profile not found");
+	        	}
+	        	return fail("profile error: " + error + ", " + json.get("errorMessage").getAsString());
+	        }
 	        String uuid = json.get("id").getAsString();
 	        String username = json.get("name").getAsString();
 	        // no need to get accessToken for this
@@ -240,7 +257,7 @@ public class AuthUtil {
 			JsonParser parser = new JsonParser();
 			JsonObject json = parser.parse(response).getAsJsonObject();
 			if(json.has("error")) {
-				return fail(json.get("error").getAsString()  + ", " + json.get("errorMessage").getAsString() + ", " + json.get("cause").getAsString());
+				return fail(json.get("error").getAsString()  + ", " + json.get("errorMessage").getAsString() + (json.has("cause") ? ", " + json.get("cause").getAsString() : ""));
 			}
 			if(!json.get("clientToken").getAsString().equals(clientToken)) {
 				return fail("client token mismatched");
