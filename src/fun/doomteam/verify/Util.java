@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -31,6 +32,10 @@ public class Util {
 	}
 	
 	public static void sendTellraw(Player player, String msg) {
+		if(nms.startsWith("v1_17")) {
+			sendTellraw_1_17(player, msg);
+			return;
+		}
 		try {
 			Class<?> classPacketChat = Class.forName("net.minecraft.server." + nms + ".PacketPlayOutChat");
 			Class<?> classIChatBase = Class.forName("net.minecraft.server." + nms + ".IChatBaseComponent");
@@ -44,8 +49,45 @@ public class Util {
 			t.printStackTrace();
 		}
 	}
-	
+	public static void sendTellraw_1_17(Player player, String msg) {
+		try {
+			Class<?> classPacketChat = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutChat");
+			Class<?> classIChatBase = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
+			Class<?> classChatMessageType = Class.forName("net.minecraft.network.chat.ChatMessageType");
+			Class<?> classChatSeri = classIChatBase.getDeclaredClasses()[0];
+			Constructor<?> constPacketChat = classPacketChat.getDeclaredConstructor(classIChatBase, classChatMessageType, UUID.class);
+			Method a = classChatSeri.getDeclaredMethod("a", String.class);
+			Object type = classChatMessageType.getEnumConstants()[1];
+			Object text = a.invoke(null, msg);
+			Object packet = constPacketChat.newInstance(text, type, player.getUniqueId());
+			sendPacket_1_17(player, packet);
+		}catch(Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	public static void sendActionMsg_1_17(Player player, String msg) {
+		try {
+			Class<?> classPacket = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutChat");
+			Class<?> classChatText = Class.forName("net.minecraft.network.chat.ChatComponentText");
+			Class<?> classIChatBase = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
+			Class<?> classChatMessageType = Class.forName("net.minecraft.network.chat.ChatMessageType");
+			Constructor<?> constChatText = classChatText.getDeclaredConstructor(String.class);
+			Constructor<?> constPacket = classPacket.getDeclaredConstructor(classIChatBase, classChatMessageType, UUID.class);
+			Object type = classChatMessageType.getEnumConstants()[0];
+			Object text = constChatText.newInstance(ChatColor.translateAlternateColorCodes('&', msg));
+			Object packet = constPacket.newInstance(text, type, player.getUniqueId());
+			sendPacket_1_17(player, packet);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
 	public static void sendActionMsg(Player player, String msg) {
+		if(nms.startsWith("v1_17")) {
+			sendActionMsg_1_17(player, msg);
+			return;
+		}
 		try {
 			Class<?> classPacket = Class.forName("net.minecraft.server." + nms + ".PacketPlayOutChat");
 			Class<?> classChatText = Class.forName("net.minecraft.server." + nms + ".ChatComponentText");
@@ -61,6 +103,10 @@ public class Util {
 	}
 
 	public static void sendPacket(Player player, Object packet) {
+		if(nms.startsWith("v1_17")) {
+			sendPacket_1_17(player, packet);
+			return;
+		}
 		try {
 			Class<?> classCraftPlayer = Class.forName("org.bukkit.craftbukkit." + nms + ".entity.CraftPlayer");
 			Class<?> classPlayer = Class.forName("net.minecraft.server." + nms + ".EntityPlayer");
@@ -69,6 +115,28 @@ public class Util {
 			Method getNMSPlayer = classCraftPlayer.getDeclaredMethod("getHandle");
 			Object nmsPlayer = getNMSPlayer.invoke(player);
 			Field fieldConnection = classPlayer.getDeclaredField("playerConnection");
+			Object conn = fieldConnection.get(nmsPlayer);
+			Method sendPacket = classConnection.getDeclaredMethod("sendPacket", classPacket);
+			sendPacket.invoke(conn, packet);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+	public static void sendPacket_1_17(Player player, Object packet) {
+		try {
+			Class<?> classCraftPlayer = Class.forName("org.bukkit.craftbukkit." + nms + ".entity.CraftPlayer");
+			Class<?> classPlayer = Class.forName("net.minecraft.server.level.EntityPlayer");
+			Class<?> classConnection = Class.forName("net.minecraft.server.network.PlayerConnection");
+			Class<?> classPacket = Class.forName("net.minecraft.network.protocol.Packet");
+			Method getNMSPlayer = classCraftPlayer.getDeclaredMethod("getHandle");
+			Object nmsPlayer = getNMSPlayer.invoke(player);
+			Field fieldConnection = null;
+			for(Field f : classPlayer.getDeclaredFields()) {
+				if(f.getType().equals(classConnection)) {
+					fieldConnection = f;
+					break;
+				}
+			}
 			Object conn = fieldConnection.get(nmsPlayer);
 			Method sendPacket = classConnection.getDeclaredMethod("sendPacket", classPacket);
 			sendPacket.invoke(conn, packet);
