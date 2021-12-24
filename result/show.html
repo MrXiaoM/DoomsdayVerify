@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<!--
+	Massively by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html lang="zh">
+	<head>
+		<title>登录完毕 - DoomsdayVerify</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="../assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+		<!-- Wrapper -->
+		<div id="wrapper" class="fade-in">
+			<!-- Intro -->
+			<div id="intro">
+				<h1>登录完毕</h1>
+				<p>请完整复制以下命令，粘贴到游戏中执行，让插件确认你的账户信息来完成正版验证。<br/>
+					为了你的账户安全，请不要泄露指令中的登录代码或随意将本页截图给他人。<br/>
+				</p>
+				<p id="result-text"> </p>
+				<script>
+   					var reg = new RegExp('(^|&)code=([^&]*)(&|$)', 'i');
+   					var r = window.location.search.substr(1).match(reg);
+			    	if (r != null) {
+       					document.getElementById('result-text').innerText = '/ms ' + unescape(r[2]);
+   					}
+				</script>
+				<p>( 正在使用<a href="https://www.mcbbs.net/thread-1252309-1-1.html">DoomsdayVerify</a> Minecraft 账户正版验证插件 )</p>
+			</div>
+		</div>
+		<!-- Scripts -->
+		<script src="../assets/js/jquery.min.js"></script>
+		<script src="../assets/js/jquery.scrollex.min.js"></script>
+		<script src="../assets/js/jquery.scrolly.min.js"></script>
+		<script src="../assets/js/browser.min.js"></script>
+		<script src="../assets/js/breakpoints.min.js"></script>
+		<script src="../assets/js/util.js"></script>
+		<script src="../assets/js/main.js"></script>
+	</body>
+</html>
