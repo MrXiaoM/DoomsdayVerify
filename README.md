@@ -1,6 +1,6 @@
 # DoomsdayVerify
 
-[![Release | 1.1 beta](https://img.shields.io/badge/Release-1.1%20beta-orange)](https://github.com/DoomsdaySociety/DoomsdayVerify/releases) [![](https://img.shields.io/badge/mcbbs-thread-brightgreen)](https://www.mcbbs.net/thread-1252309-1-1.html) [![](https://img.shields.io/badge/Minecraft-1.8--1.15-blue)]()
+[![Release | 1.2 beta](https://img.shields.io/badge/Release-1.2%20beta-orange)](https://github.com/DoomsdaySociety/DoomsdayVerify/releases) [![](https://img.shields.io/badge/mcbbs-thread-brightgreen)](https://www.mcbbs.net/thread-1252309-1-1.html) [![](https://img.shields.io/badge/Minecraft-1.8--1.15-blue)]()
 # 前言
 
 因为我服务器需要让离线玩家进行正版验证来获得，  
