@@ -18,21 +18,22 @@ import me.clip.placeholderapi.PlaceholderAPI;
 public class Util {
 	public static final String nms = Bukkit.getServer().getClass().getPackage().getName().substring(23);
 	private static boolean isUsePlaceholderAPI = false;
-	
+
 	public static boolean init() {
 		try {
-			if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+			if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
 				Class.forName("me.clip.placeholderapi.PlaceholderAPI");
 				isUsePlaceholderAPI = true;
 			}
-		}catch(Throwable t) {
+		} catch (Throwable t) {
 			isUsePlaceholderAPI = false;
 		}
 		return isUsePlaceholderAPI;
 	}
-	
+
 	public static void sendTellraw(Player player, String msg) {
-		if(nms.startsWith("v1_17")) {
+		// TODO 未验证，我赌1.18接口没变
+		if (nms.startsWith("v1_17") || nms.startsWith("v1_18")) {
 			sendTellraw_1_17(player, msg);
 			return;
 		}
@@ -45,23 +46,25 @@ public class Util {
 			Object text = a.invoke(null, msg);
 			Object packet = constPacketChat.newInstance(text);
 			sendPacket(player, packet);
-		}catch(Throwable t) {
+		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}
+
 	public static void sendTellraw_1_17(Player player, String msg) {
 		try {
 			Class<?> classPacketChat = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutChat");
 			Class<?> classIChatBase = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
 			Class<?> classChatMessageType = Class.forName("net.minecraft.network.chat.ChatMessageType");
 			Class<?> classChatSeri = classIChatBase.getDeclaredClasses()[0];
-			Constructor<?> constPacketChat = classPacketChat.getDeclaredConstructor(classIChatBase, classChatMessageType, UUID.class);
+			Constructor<?> constPacketChat = classPacketChat.getDeclaredConstructor(classIChatBase,
+					classChatMessageType, UUID.class);
 			Method a = classChatSeri.getDeclaredMethod("a", String.class);
 			Object type = classChatMessageType.getEnumConstants()[1];
 			Object text = a.invoke(null, msg);
 			Object packet = constPacketChat.newInstance(text, type, player.getUniqueId());
 			sendPacket_1_17(player, packet);
-		}catch(Throwable t) {
+		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}
@@ -73,7 +76,8 @@ public class Util {
 			Class<?> classIChatBase = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
 			Class<?> classChatMessageType = Class.forName("net.minecraft.network.chat.ChatMessageType");
 			Constructor<?> constChatText = classChatText.getDeclaredConstructor(String.class);
-			Constructor<?> constPacket = classPacket.getDeclaredConstructor(classIChatBase, classChatMessageType, UUID.class);
+			Constructor<?> constPacket = classPacket.getDeclaredConstructor(classIChatBase, classChatMessageType,
+					UUID.class);
 			Object type = classChatMessageType.getEnumConstants()[0];
 			Object text = constChatText.newInstance(ChatColor.translateAlternateColorCodes('&', msg));
 			Object packet = constPacket.newInstance(text, type, player.getUniqueId());
@@ -84,7 +88,8 @@ public class Util {
 	}
 
 	public static void sendActionMsg(Player player, String msg) {
-		if(nms.startsWith("v1_17")) {
+		// TODO 未验证，我赌1.18接口没变
+		if (nms.startsWith("v1_17") || nms.startsWith("v1_18")) {
 			sendActionMsg_1_17(player, msg);
 			return;
 		}
@@ -103,7 +108,7 @@ public class Util {
 	}
 
 	public static void sendPacket(Player player, Object packet) {
-		if(nms.startsWith("v1_17")) {
+		if (nms.startsWith("v1_17")) {
 			sendPacket_1_17(player, packet);
 			return;
 		}
@@ -122,6 +127,7 @@ public class Util {
 			t.printStackTrace();
 		}
 	}
+
 	public static void sendPacket_1_17(Player player, Object packet) {
 		try {
 			Class<?> classCraftPlayer = Class.forName("org.bukkit.craftbukkit." + nms + ".entity.CraftPlayer");
@@ -131,8 +137,8 @@ public class Util {
 			Method getNMSPlayer = classCraftPlayer.getDeclaredMethod("getHandle");
 			Object nmsPlayer = getNMSPlayer.invoke(player);
 			Field fieldConnection = null;
-			for(Field f : classPlayer.getDeclaredFields()) {
-				if(f.getType().equals(classConnection)) {
+			for (Field f : classPlayer.getDeclaredFields()) {
+				if (f.getType().equals(classConnection)) {
 					fieldConnection = f;
 					break;
 				}
@@ -167,20 +173,21 @@ public class Util {
 			t.printStackTrace();
 		}
 	}
-	
+
 	private static List<String> handlePlaceholder(Player player, List<String> str) {
 		List<String> list = new ArrayList<>();
-		for(String s : str) {
+		for (String s : str) {
 			list.add(handlePlaceholder(player, s));
 		}
 		return list;
 	}
-	
+
 	private static String handlePlaceholder(Player player, String str) {
-		if(!isUsePlaceholderAPI) return ChatColor.translateAlternateColorCodes('&', str);
+		if (!isUsePlaceholderAPI)
+			return ChatColor.translateAlternateColorCodes('&', str);
 		return PlaceholderAPI.setPlaceholders(player, str);
 	}
-	
+
 	public static void runCommands(List<String> commands, Player player) {
 		if (player == null || commands == null || commands.isEmpty())
 			return;

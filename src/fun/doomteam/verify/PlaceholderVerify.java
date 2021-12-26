@@ -28,8 +28,9 @@ public class PlaceholderVerify extends PlaceholderExpansion {
 		}
 		if (identifier.toLowerCase().startsWith("verified_")) {
 			String[] args = identifier.split("_");
-			if(args.length == 3) {
-				return ChatColor.translateAlternateColorCodes('&', main.getVerifyManager().isPlayerVerified(player.getName()) ? args[1] : args[2]);
+			if (args.length == 3) {
+				return ChatColor.translateAlternateColorCodes('&',
+						main.getVerifyManager().isPlayerVerified(player.getName()) ? args[1] : args[2]);
 			}
 		}
 		if (identifier.equalsIgnoreCase("fail_time")) {

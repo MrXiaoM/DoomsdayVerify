@@ -3,7 +3,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="D:/日食项目/libraries/spigot-1.15.2.jar"/>
-	<classpathentry kind="lib" path="D:/日食项目/libraries/CoreProtect-20.1.jar"/>
 	<classpathentry kind="lib" path="D:/日食项目/libraries/PlaceholderAPI-2.10.9.jar"/>
+	<classpathentry kind="lib" path="D:/日食项目/libraries/ProtocolLib.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

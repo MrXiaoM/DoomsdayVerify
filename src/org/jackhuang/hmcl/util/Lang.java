@@ -1,6 +1,6 @@
 /*
  * Hello Minecraft! Launcher
- * Copyright (C) 2020  huangyuhui <huanghongxun2008@126.com> and contributors
+ * Copyright (C) 2021  huangyuhui <huanghongxun2008@126.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,13 @@
  */
 package org.jackhuang.hmcl.util;
 
-import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import org.jackhuang.hmcl.util.function.*;
 
-import org.jackhuang.hmcl.util.function.ExceptionalRunnable;
-import org.jackhuang.hmcl.util.function.ExceptionalSupplier;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.*;
+import java.util.stream.Stream;
 
 /**
  *
@@ -47,6 +43,17 @@ public final class Lang {
      */
     @SafeVarargs
     public static <K, V> Map<K, V> mapOf(Pair<K, V>... pairs) {
+        return mapOf(Arrays.asList(pairs));
+    }
+
+    /**
+     * Construct a mutable map by given key-value pairs.
+     * @param pairs entries in the new map
+     * @param <K> the type of keys
+     * @param <V> the type of values
+     * @return the map which contains data in {@code pairs}.
+     */
+    public static <K, V> Map<K, V> mapOf(Iterable<Pair<K, V>> pairs) {
         Map<K, V> map = new LinkedHashMap<>();
         for (Pair<K, V> pair : pairs)
             map.put(pair.getKey(), pair.getValue());
@@ -245,6 +252,137 @@ public final class Lang {
         return t;
     }
 
+    public static void rethrow(Throwable e) {
+        if (e == null)
+            return;
+        if (e instanceof ExecutionException || e instanceof CompletionException) { // including UncheckedException and UncheckedThrowable
+            rethrow(e.getCause());
+        } else if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        } else {
+            throw new CompletionException(e);
+        }
+    }
+
+    public static Runnable wrap(ExceptionalRunnable<?> runnable) {
+        return () -> {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                rethrow(e);
+            }
+        };
+    }
+
+    public static <T> Supplier<T> wrap(ExceptionalSupplier<T, ?> supplier) {
+        return () -> {
+            try {
+                return supplier.get();
+            } catch (Exception e) {
+                rethrow(e);
+                throw new InternalError("Unreachable code");
+            }
+        };
+    }
+
+    public static <T, R> Function<T, R> wrap(ExceptionalFunction<T, R, ?> fn) {
+        return t -> {
+            try {
+                return fn.apply(t);
+            } catch (Exception e) {
+                rethrow(e);
+                throw new InternalError("Unreachable code");
+            }
+        };
+    }
+
+    public static <T> Consumer<T> wrapConsumer(ExceptionalConsumer<T, ?> fn) {
+        return t -> {
+            try {
+                fn.accept(t);
+            } catch (Exception e) {
+                rethrow(e);
+            }
+        };
+    }
+
+    public static <T, E> BiConsumer<T, E> wrap(ExceptionalBiConsumer<T, E, ?> fn) {
+        return (t, e) -> {
+            try {
+                fn.accept(t, e);
+            } catch (Exception ex) {
+                rethrow(ex);
+            }
+        };
+    }
+
+    @SafeVarargs
+    public static <T> Consumer<T> compose(Consumer<T>... consumers) {
+        return t -> {
+            for (Consumer<T> consumer : consumers) {
+                consumer.accept(t);
+            }
+        };
+    }
+
+    public static <T> Stream<T> toStream(Optional<T> optional) {
+        return optional.map(Stream::of).orElseGet(Stream::empty);
+    }
+
+    public static <T> Iterable<T> toIterable(Enumeration<T> enumeration) {
+        if (enumeration == null) {
+            throw new NullPointerException();
+        }
+        return () -> new Iterator<T>() {
+            public boolean hasNext() {
+                return enumeration.hasMoreElements();
+            }
+
+            public T next() {
+                return enumeration.nextElement();
+            }
+
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    public static <T> Iterable<T> toIterable(Stream<T> stream) {
+        return stream::iterator;
+    }
+
+    public static <T> Iterable<T> toIterable(Iterator<T> iterator) {
+        return () -> iterator;
+    }
+
+    private static Timer timer;
+
+    public static synchronized Timer getTimer() {
+        if (timer == null) {
+            timer = new Timer();
+        }
+        return timer;
+    }
+
+    public static synchronized TimerTask setTimeout(Runnable runnable, long delayMs) {
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        };
+        getTimer().schedule(task, delayMs);
+        return task;
+    }
+
+    public static Throwable resolveException(Throwable e) {
+        if (e instanceof ExecutionException || e instanceof CompletionException)
+            return resolveException(e.getCause());
+        else
+            return e;
+    }
+
     /**
      * This is a useful function to prevent exceptions being eaten when using CompletableFuture.
      * You can write:
@@ -255,7 +393,8 @@ public final class Lang {
         return null;
     };
 
-    public static void handleUncaughtException(Throwable e) {
+    public static <R> R handleUncaughtException(Throwable e) {
         Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e);
+        return null;
     }
 }

@@ -34,11 +34,11 @@ public class VerifyManager {
 			try {
 				LoginResult result = AuthUtil.microsoft(code);
 				if (result.isSuccess()) {
-					if(main.ignoreCase ? result.getUsername().equalsIgnoreCase(player.getName()) : result.getUsername().equals(player.getName())) {
+					if (main.ignoreCase ? result.getUsername().equalsIgnoreCase(player.getName())
+							: result.getUsername().equals(player.getName())) {
 						putPlayer(player);
 						Util.runCommands(main.commandsMS, player);
-					}
-					else {
+					} else {
 						player.sendMessage(main.msg("microsoft.name-mismatched"));
 						addPlayerFailTime(player);
 					}
@@ -79,11 +79,11 @@ public class VerifyManager {
 			try {
 				LoginResult result = AuthUtil.mojang(email, pw);
 				if (result.isSuccess()) {
-					if(main.ignoreCase ? result.getUsername().equalsIgnoreCase(player.getName()) : result.getUsername().equals(player.getName())) {
+					if (main.ignoreCase ? result.getUsername().equalsIgnoreCase(player.getName())
+							: result.getUsername().equals(player.getName())) {
 						putPlayer(player);
 						Util.runCommands(main.commandsMojang, player);
-					}
-					else {
+					} else {
 						player.sendMessage(main.msg("mojang.name-mismatched"));
 						addPlayerFailTime(player);
 					}
@@ -116,13 +116,13 @@ public class VerifyManager {
 	}
 
 	public boolean isPlayerVerified(String player) {
-		return config.getBoolean(player + ".verified" , false);
+		return config.getBoolean(player + ".verified", false);
 	}
-	
+
 	public int getPlayerFailTimes(Player player) {
 		return this.getPlayerFailTimes(player.getName());
 	}
-	
+
 	public int getPlayerFailTimes(String player) {
 		return config.getInt(player + ".fail", 0);
 	}
@@ -130,24 +130,26 @@ public class VerifyManager {
 	public void addPlayerFailTime(Player player) {
 		this.addPlayerFailTime(player.getName());
 		int remainingTime = this.main.maxFailTime - getPlayerFailTimes(player);
-		if(remainingTime == 0) {
+		if (remainingTime == 0) {
 			player.sendMessage(main.msg("time-run-out"));
 		} else {
 			player.sendMessage(main.msg("time-last").replace("%time%", String.valueOf(remainingTime)));
 		}
 	}
-	
+
 	public void addPlayerFailTime(String player) {
 		int time = getPlayerFailTimes(player);
-		if(time >= 0) time++;
-		else time = 1;
+		if (time >= 0)
+			time++;
+		else
+			time = 1;
 		this.setPlayerFailTime(player, time);
 	}
 
 	public void setPlayerFailTime(Player player, int times) {
 		this.setPlayerFailTime(player.getName(), times);
 	}
-	
+
 	public void setPlayerFailTime(String player, int times) {
 		config.set(player + ".fail", times);
 		this.saveConfig();
@@ -211,7 +213,8 @@ public class VerifyManager {
 
 	public void saveConfig() {
 		try {
-			if(this.config == null) this.config = new YamlConfiguration();
+			if (this.config == null)
+				this.config = new YamlConfiguration();
 			this.config.save(configFile);
 		} catch (Throwable t) {
 			t.printStackTrace();
