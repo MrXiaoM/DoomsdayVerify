@@ -32,7 +32,6 @@ public class Util {
 	}
 
 	public static void sendTellraw(Player player, String msg) {
-		// TODO 未验证，我赌1.18接口没变
 		if (nms.startsWith("v1_17") || nms.startsWith("v1_18")) {
 			sendTellraw_1_17(player, msg);
 			return;
@@ -88,7 +87,6 @@ public class Util {
 	}
 
 	public static void sendActionMsg(Player player, String msg) {
-		// TODO 未验证，我赌1.18接口没变
 		if (nms.startsWith("v1_17") || nms.startsWith("v1_18")) {
 			sendActionMsg_1_17(player, msg);
 			return;
@@ -184,53 +182,55 @@ public class Util {
 
 	private static String handlePlaceholder(Player player, String str) {
 		if (!isUsePlaceholderAPI)
-			return ChatColor.translateAlternateColorCodes('&', str);
+			return ChatColor.translateAlternateColorCodes('&', str.replace("%player_name%", player.getName()));
 		return PlaceholderAPI.setPlaceholders(player, str);
 	}
 
 	public static void runCommands(List<String> commands, Player player) {
 		if (player == null || commands == null || commands.isEmpty())
 			return;
-		for (String cmd : handlePlaceholder(player, commands)) {
-			if (cmd.startsWith("console:")) {
-				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.substring(8));
-				continue;
+		Bukkit.getScheduler().runTask(Main.INSTANCE, () -> {
+			for (String cmd : handlePlaceholder(player, commands)) {
+				if (cmd.startsWith("console:")) {
+					Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.substring(8));
+					continue;
+				}
+				if (cmd.startsWith("message-all:")) {
+					Bukkit.broadcastMessage(cmd.substring(12));
+					continue;
+				}
+				if (player.isOnline()) {
+					if (cmd.startsWith("player:")) {
+						Bukkit.dispatchCommand(player, cmd.substring(7));
+						continue;
+					}
+					if (cmd.startsWith("sound:")) {
+						String s = cmd.substring(6).toUpperCase();
+						String[] a = s.contains(",") ? s.split(",") : new String[] { s };
+						float volume = strToFloat(a.length > 1 ? a[1] : "1.0", 1.0F);
+						float pitch = strToFloat(a.length > 2 ? a[2] : "1.0", 1.0F);
+						player.playSound(player.getLocation(), Sound.valueOf(a[0]), volume, pitch);
+						continue;
+					}
+					if (cmd.startsWith("message:")) {
+						player.sendMessage(cmd.substring(8));
+						continue;
+					}
+					if (cmd.startsWith("action:")) {
+						sendActionMsg(player, cmd.substring(7));
+						continue;
+					}
+					if (cmd.startsWith("title:")) {
+						sendTitle(player, "TITLE", 10, 40, 10, cmd.substring(6));
+						continue;
+					}
+					if (cmd.startsWith("subtitle:")) {
+						sendTitle(player, "SUBTITLE", 10, 40, 10, cmd.substring(9));
+						continue;
+					}
+				}
 			}
-			if (cmd.startsWith("message-all:")) {
-				Bukkit.broadcastMessage(cmd.substring(12));
-				continue;
-			}
-			if (player.isOnline()) {
-				if (cmd.startsWith("player:")) {
-					Bukkit.dispatchCommand(player, cmd.substring(7));
-					continue;
-				}
-				if (cmd.startsWith("sound:")) {
-					String s = cmd.substring(6).toUpperCase();
-					String[] a = s.contains(",") ? s.split(",") : new String[] { s };
-					float volume = strToFloat(a.length > 1 ? a[1] : "1.0", 1.0F);
-					float pitch = strToFloat(a.length > 2 ? a[2] : "1.0", 1.0F);
-					player.playSound(player.getLocation(), Sound.valueOf(a[0]), volume, pitch);
-					continue;
-				}
-				if (cmd.startsWith("message:")) {
-					player.sendMessage(cmd.substring(8));
-					continue;
-				}
-				if (cmd.startsWith("action:")) {
-					sendActionMsg(player, cmd.substring(7));
-					continue;
-				}
-				if (cmd.startsWith("title:")) {
-					sendTitle(player, "TITLE", 10, 40, 10, cmd.substring(6));
-					continue;
-				}
-				if (cmd.startsWith("subtitle:")) {
-					sendTitle(player, "SUBTITLE", 10, 40, 10, cmd.substring(9));
-					continue;
-				}
-			}
-		}
+		});
 	}
 
 	public static void clearPlayerEffects(Player player) {

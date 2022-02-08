@@ -17,8 +17,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class Main extends JavaPlugin implements Listener {
-	
+
 	public static final String LOGIN_WEB_URL = "https://verify.doomteam.fun/";
+	protected static Main INSTANCE;
 	VerifyManager verifyManager;
 	PlaceholderVerify placeholder;
 	ProtocolManager pm;
@@ -46,6 +47,7 @@ public class Main extends JavaPlugin implements Listener {
 			(this.placeholder = new PlaceholderVerify(this)).register();
 		}
 		this.getServer().getPluginManager().registerEvents(this, this);
+		INSTANCE = this;
 	}
 
 	@Override
@@ -54,7 +56,8 @@ public class Main extends JavaPlugin implements Listener {
 			this.verifyManager.saveConfig();
 		if (this.placeholder != null && this.placeholder.isRegistered())
 			this.placeholder.unregister();
-		if (this.cmds != null) this.cmds.onDisable();
+		if (this.cmds != null)
+			this.cmds.onDisable();
 	}
 
 	public void reloadConfig() {
@@ -78,10 +81,10 @@ public class Main extends JavaPlugin implements Listener {
 
 	public String msgDefault(String key) {
 		if (!this.defaultConfig.contains("messages." + key)) {
-			return "¡ì4translate error: ¡ìcmessage." + key;
+			return "Â§4translate error: Â§cmessage." + key;
 		}
 		if (!this.defaultConfig.isString("messages." + key)) {
-			return "¡ì4wrong type: ¡ìcmessage." + key;
+			return "Â§4wrong type: Â§cmessage." + key;
 		}
 		return ChatColor.translateAlternateColorCodes('&', this.defaultConfig.getString("messages." + key));
 	}
@@ -91,17 +94,17 @@ public class Main extends JavaPlugin implements Listener {
 			return this.msgDefault(key);
 		}
 		if (!this.getConfig().isString("messages." + key)) {
-			return "¡ì4wrong type: ¡ìcmessage." + key;
+			return "Â§4wrong type: Â§cmessage." + key;
 		}
 		return ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("messages." + key));
 	}
 
 	public String[] msgsDefault(String key) {
 		if (!this.defaultConfig.contains("messages." + key)) {
-			return new String[] { "¡ì4translate error: ¡ìcmessages." + key };
+			return new String[] { "Â§4translate error: Â§cmessages." + key };
 		}
 		if (!this.defaultConfig.isList("messages." + key)) {
-			return new String[] { "¡ì4wrong type: ¡ìcmessages." + key };
+			return new String[] { "Â§4wrong type: Â§cmessages." + key };
 		}
 		List<String> list = this.defaultConfig.getStringList("messages." + key);
 		String[] array = new String[list.size()];
@@ -116,7 +119,7 @@ public class Main extends JavaPlugin implements Listener {
 			return this.msgsDefault(key);
 		}
 		if (!this.getConfig().isList("messages." + key)) {
-			return new String[] { "¡ì4wrong type: ¡ìcmessages." + key };
+			return new String[] { "Â§4wrong type: Â§cmessages." + key };
 		}
 		List<String> list = this.getConfig().getStringList("messages." + key);
 		String[] array = new String[list.size()];
@@ -128,11 +131,11 @@ public class Main extends JavaPlugin implements Listener {
 
 	public void linkMsgs(Player player, String key, String split, String link, String linkText, String hoverText) {
 		if (!this.getConfig().contains("messages." + key)) {
-			player.sendMessage("¡ì4translate error: ¡ìcmessages." + key);
+			player.sendMessage("Â§4translate error: Â§cmessages." + key);
 			return;
 		}
 		if (!this.getConfig().isList("messages." + key)) {
-			player.sendMessage("¡ì4wrong type: ¡ìcmessages." + key);
+			player.sendMessage("Â§4wrong type: Â§cmessages." + key);
 			return;
 		}
 		List<String> list = this.getConfig().getStringList("messages." + key);
@@ -170,5 +173,9 @@ public class Main extends JavaPlugin implements Listener {
 		JsonObject json = new JsonObject();
 		json.addProperty("text", text);
 		return json;
+	}
+
+	public Main getInstance() {
+		return INSTANCE;
 	}
 }

@@ -112,6 +112,7 @@ public class VerifyManager {
 	}
 
 	public boolean isPlayerVerified(Player player) {
+		if (player == null) return false;
 		return this.isPlayerVerified(player.getName());
 	}
 
@@ -119,7 +120,17 @@ public class VerifyManager {
 		return config.getBoolean(player + ".verified", false);
 	}
 
+	public boolean isPlayerVerifing(Player player) {
+		if (player == null) return false;
+		return this.isPlayerVerifing(player.getName());
+	}
+	
+	public boolean isPlayerVerifing(String player) {
+		return verifyMap.containsKey(player);
+	}
+
 	public int getPlayerFailTimes(Player player) {
+		if (player == null) return 0;
 		return this.getPlayerFailTimes(player.getName());
 	}
 
@@ -128,6 +139,7 @@ public class VerifyManager {
 	}
 
 	public void addPlayerFailTime(Player player) {
+		if (player == null) return;
 		this.addPlayerFailTime(player.getName());
 		int remainingTime = this.main.maxFailTime - getPlayerFailTimes(player);
 		if (remainingTime == 0) {

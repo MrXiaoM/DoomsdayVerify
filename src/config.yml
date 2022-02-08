@@ -23,6 +23,9 @@ commands-mojang:
 - 'message:&a你已成功通过正版验证'
 - 'message-all:&7[&c公告&7] &e%player_name% &a已成功通过正版验证 (mojang账户)'
 
+# 微软验证命令前缀，不能包含空格
+command-ms-prefix: 'ms'
+
 # 允许失败次数，超过这个次数将无法再进行正版验证
 max-verify-times: 3
 

@@ -1,6 +1,7 @@
 # DoomsdayVerify
 
-[![Release | 1.2 beta](https://img.shields.io/badge/Release-1.2%20beta-orange)](https://github.com/DoomsdaySociety/DoomsdayVerify/releases) [![](https://img.shields.io/badge/mcbbs-thread-brightgreen)](https://www.mcbbs.net/thread-1252309-1-1.html) [![](https://img.shields.io/badge/Minecraft-1.8--1.15-blue)]()
+[![Release | 1.3](https://img.shields.io/badge/Release-1.3-lightblue)](https://github.com/DoomsdaySociety/DoomsdayVerify/releases) [![](https://img.shields.io/badge/mcbbs-thread-brightgreen)](https://www.mcbbs.net/thread-1252309-1-1.html) [![](https://img.shields.io/badge/Minecraft-1.8--1.15-blue)]()
+
 # 前言
 
 因为我服务器需要让离线玩家进行正版验证来获得，  
@@ -9,7 +10,7 @@
 目前我只有正版微软账号，我试过用黑卡是可以进行mojang登录的，理论上是可以用的，  
 我是使用 1.15 环境编写，使用 1.8 环境测试，所以理论上 1.8-1.15 都是适用的，  
 更高的版本暂未尝试，欢迎尝试并反馈  
-  
+
 目前正在尝试兼容 1.17，代码已写，暂未测试，可自行编译尝试并在 issues 反馈结果获取 pull requests 提交修复后的代码
 
 # 截图
@@ -20,7 +21,7 @@
 # 命令
 
 * /dv mojang [邮箱] [密码] 验证mojang账号
-* /ms 验证微软账号 (使用这个这么简短的命令的原因是我在1.8测试时，粘贴的链接会被聊天栏吃掉导致取不全链接中的代码，叫普通玩家来精准复制代码那是不可能的，于是不得不缩短命令，要是我闲得去搞 OAuth 或许会在以后的版本解决这个问题)
+* /ms 验证微软账号
 * /dv set [玩家] [次数] 设置玩家验证失败次数
 * /dv reload 重载插件配置文件
 

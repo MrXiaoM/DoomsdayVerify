@@ -16,8 +16,9 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.google.common.collect.Lists;
 
 public class Commands extends PacketAdapter implements CommandExecutor {
-	public static class ProtocolLibSupport extends PacketAdapter{
+	public static class ProtocolLibSupport extends PacketAdapter {
 		Commands parent;
+
 		public ProtocolLibSupport(Commands parent) {
 			super(parent.main, ListenerPriority.NORMAL, PacketType.Play.Client.CHAT);
 			this.parent = parent;
@@ -32,8 +33,7 @@ public class Commands extends PacketAdapter implements CommandExecutor {
 				return;
 			String[] args = s.contains(" ") ? s.substring(1).split(" ") : new String[] { s.substring(1) };
 			Player player = event.getPlayer();
-
-			if (args[0].equalsIgnoreCase("ms")) {
+			if (args[0].equalsIgnoreCase(parent.main.getConfig().getString("command-ms-prefix", "ms"))) {
 				event.setCancelled(true);
 				if (!parent.main.enableMS) {
 					player.sendMessage(parent.main.msg("microsoft.disabled"));
@@ -41,6 +41,14 @@ public class Commands extends PacketAdapter implements CommandExecutor {
 				}
 				if (!player.hasPermission("doomsdayverify.microsoft")) {
 					player.sendMessage(parent.main.msg("no-permission"));
+					return;
+				}
+				if (parent.main.getVerifyManager().isPlayerVerified(player)) {
+					player.sendMessage(parent.main.msg("verified"));
+					return;
+				}
+				if (parent.main.getVerifyManager().isPlayerVerifing(player)) {
+					player.sendMessage(parent.main.msg("verifing"));
 					return;
 				}
 				if (args.length == 2) {
@@ -64,7 +72,7 @@ public class Commands extends PacketAdapter implements CommandExecutor {
 					a.remove(0);
 					if (parent.sharedPart(player, args[0], a.parallelStream().toArray(String[]::new)))
 						return;
-					if (args.length > 1 && args[1].equalsIgnoreCase("mojang")) {
+					if (a.size() > 0 && a.get(0).equalsIgnoreCase("mojang")) {
 						if (!parent.main.enableBugjump) {
 							player.sendMessage(parent.main.msg("mojang.disabled"));
 							return;
@@ -73,12 +81,20 @@ public class Commands extends PacketAdapter implements CommandExecutor {
 							player.sendMessage(parent.main.msg("no-permission"));
 							return;
 						}
-						if (args.length != 3) {
+						if (parent.main.getVerifyManager().isPlayerVerified(player)) {
+							player.sendMessage(parent.main.msg("verified"));
+							return;
+						}
+						if (parent.main.getVerifyManager().isPlayerVerifing(player)) {
+							player.sendMessage(parent.main.msg("verifing"));
+							return;
+						}
+						if (a.size() != 3) {
 							player.sendMessage(parent.main.msgs("mojang.help"));
 							return;
 						}
-						String email = args[2];
-						String password = args[3];
+						String email = a.get(1);
+						String password = a.get(2);
 						parent.main.getVerifyManager().runMojangLogin(player, email, password);
 						return;
 					}
@@ -92,8 +108,10 @@ public class Commands extends PacketAdapter implements CommandExecutor {
 			}
 		}
 	}
+
 	Main main;
 	boolean flag = false;
+
 	public Commands(Main main) {
 		super(main, ListenerPriority.NORMAL, PacketType.Play.Client.CHAT);
 		this.main = main;
@@ -101,18 +119,18 @@ public class Commands extends PacketAdapter implements CommandExecutor {
 		if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
 			ProtocolLibrary.getProtocolManager().addPacketListener(new ProtocolLibSupport(this));
 			flag = true;
-		}
-		else {
-			this.main.getLogger().warning("You had not install ProtocolLib! We do not provide functions without ProtocolLib.");
+		} else {
+			this.main.getLogger()
+					.warning("You had not install ProtocolLib! We do not provide functions without ProtocolLib.");
 		}
 	}
 
 	public void onDisable() {
-		if(flag) {
+		if (flag) {
 			ProtocolLibrary.getProtocolManager().removePacketListeners(main);
 		}
 	}
-	
+
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (sender instanceof Player) {
@@ -157,21 +175,19 @@ public class Commands extends PacketAdapter implements CommandExecutor {
 					main.msg("set-time").replace("%player%", targetPlayer).replace("%time%", String.valueOf(time)));
 			return true;
 		}
-		/* DEBUG
-		
-		if (args.length == 2 && args[0].equalsIgnoreCase("ms")) {
-			Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-				fun.doomteam.verify.AuthUtil.LoginResult result = AuthUtil.microsoft(args[1]);
-				sender.sendMessage(result.isSuccess() + ": " + result.getInfoString());
-				if(result.isSuccess()) {
-					sender.sendMessage(result.getUuid() + ":"+result.getUsername());
-				}
-			});
-			return true;
-		}
-		
-		/**/
-		// ¿ØÖÆÌ¨°ïÖú
+		/*
+		 * DEBUG
+		 * 
+		 * if (args.length == 2 && args[0].equalsIgnoreCase("ms")) {
+		 * Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+		 * fun.doomteam.verify.AuthUtil.LoginResult result =
+		 * AuthUtil.microsoft(args[1]); sender.sendMessage(result.isSuccess() + ": " +
+		 * result.getInfoString()); if(result.isSuccess()) {
+		 * sender.sendMessage(result.getUuid() + ":"+result.getUsername()); } }); return
+		 * true; }
+		 * 
+		 * /
+		 **/
 		if (!(sender instanceof Player)) {
 			sender.sendMessage(main.msgs("help-op"));
 			return true;

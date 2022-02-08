@@ -86,8 +86,7 @@ public class AuthUtil {
 		}
 
 		public static enum Info {
-			INVALID_CODE("'code' parameter is not valid"), 
-			UHS_MISMATCHED("uhs mismatched"),
+			INVALID_CODE("'code' parameter is not valid"), UHS_MISMATCHED("uhs mismatched"),
 			CLIENT_TOKEN_MISMATCHED("client token mismatched"),
 			MOJANG_INVALID_CREDENTIALS("Invalid username or password"), MS_NO_ACCOUNT("not have mc service"),
 			PROFILE_ERROR("profile error: "), NO_PROFILE("profile not found"), NO_SELECTED("no seleted profile"),
@@ -134,64 +133,69 @@ public class AuthUtil {
 
 	public static LoginResult microsoft(String code) {
 		try {
-			// TODO client_secret √ø2ƒÍ ÷∂Ø∏¸–¬“ª¥Œ£¨‘⁄ ms ∑÷÷ßµƒ CLIENT_SECRET Œƒº˛¿Ô°£÷ª“™”Ú√˚ªπ‘⁄£¨≤Âº˛æÕƒ‹”√
-			// Œ“µƒÃıº˛≤ª‘ –ÌŒ“∂©‘ƒ Azure √‚∑—’Àªß£¨◊ˆ≤ª¡À¡™∫œ∆ææ›£¨÷ªƒ‹“‘¥À◊˜Œ™¡Ÿ ±Ω‚æˆ∑Ω∑®
-			String client_secret = HttpRequest.GET("https://verify.doomteam.fun/CLIENT_SECRET").getString();
-			
+			// TODO client_secret ÊØè2Âπ¥ÊâãÂä®Êõ¥Êñ∞‰∏ÄÊ¨°ÔºåÂú® ms ÂàÜÊîØÁöÑ CLIENT_SECRET Êñá‰ª∂Èáå„ÄÇÂè™Ë¶ÅÂüüÂêçËøòÂú®ÔºåÊèí‰ª∂Â∞±ËÉΩÁî®
+			// ÊàëÁöÑÊù°‰ª∂‰∏çÂÖÅËÆ∏ÊàëËÆ¢ÈòÖ Azure ÂÖçË¥πË¥¶Êà∑ÔºåÂÅö‰∏ç‰∫ÜËÅîÂêàÂá≠ÊçÆÔºåÂè™ËÉΩ‰ª•Ê≠§‰Ωú‰∏∫‰∏¥Êó∂Ëß£ÂÜ≥ÊñπÊ≥ï
+			String client_secret = HttpRequest.GET("https://gitee.com/MrXiaoM/DVS/raw/master/CS.txt").header(
+					"User-Agent",
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36 Edg/95.0.1020.53")
+					.getString();
+
 			String responseText = HttpRequest.POST("https://login.live.com/oauth20_token.srf")
-	                .form(pair("client_id", "73600c5b-7c5b-41f0-90ab-19a953d79b92"), pair("code", code),
-	                        pair("grant_type", "authorization_code"), pair("client_secret", client_secret),
-	                        pair("redirect_uri", "https://verify.doomteam.fun/result"), pair("scope", "XboxLive.signin offline_access"))
-	                .ignoreHttpCode()
-	                .getString();
+					.form(pair("client_id", "73600c5b-7c5b-41f0-90ab-19a953d79b92"), pair("code", code),
+							pair("grant_type", "authorization_code"), pair("client_secret", client_secret),
+							pair("redirect_uri", "https://verify.doomteam.fun/result"),
+							pair("scope", "XboxLive.signin offline_access"))
+					.ignoreHttpCode().getString();
 			JsonParser parser = new JsonParser();
 			JsonObject json = parser.parse(responseText).getAsJsonObject();
 			if (json.has("error")) {
 				return fail(json.toString());
 			}
 			String liveAccessToken = json.get("access_token").getAsString();
-	        // Authenticate with XBox Live
-	        XBoxLiveAuthenticationResponse xboxResponse = HttpRequest
-	                .POST("https://user.auth.xboxlive.com/user/authenticate")
-	                .json(mapOf(
-	                        pair("Properties",
-	                                mapOf(pair("AuthMethod", "RPS"), pair("SiteName", "user.auth.xboxlive.com"),
-	                                        pair("RpsTicket", "d=" + liveAccessToken))),
-	                        pair("RelyingParty", "http://auth.xboxlive.com"), pair("TokenType", "JWT")))
-	                .accept("application/json").getJson(XBoxLiveAuthenticationResponse.class);
+			// Authenticate with XBox Live
+			XBoxLiveAuthenticationResponse xboxResponse = HttpRequest
+					.POST("https://user.auth.xboxlive.com/user/authenticate")
+					.json(mapOf(
+							pair("Properties",
+									mapOf(pair("AuthMethod", "RPS"), pair("SiteName", "user.auth.xboxlive.com"),
+											pair("RpsTicket", "d=" + liveAccessToken))),
+							pair("RelyingParty", "http://auth.xboxlive.com"), pair("TokenType", "JWT")))
+					.accept("application/json").getJson(XBoxLiveAuthenticationResponse.class);
 
-	        String uhs = getUhs(xboxResponse, null);
+			String uhs = getUhs(xboxResponse, null);
 
-	        // Authenticate Minecraft with XSTS
-	        XBoxLiveAuthenticationResponse minecraftXstsResponse = HttpRequest
-	                .POST("https://xsts.auth.xboxlive.com/xsts/authorize")
-	                .json(mapOf(
-	                        pair("Properties",
-	                                mapOf(pair("SandboxId", "RETAIL"),
-	                                        pair("UserTokens", Collections.singletonList(xboxResponse.token)))),
-	                        pair("RelyingParty", "rp://api.minecraftservices.com/"), pair("TokenType", "JWT")))
-	                .ignoreHttpErrorCode(401)
-	                .getJson(XBoxLiveAuthenticationResponse.class);
+			// Authenticate Minecraft with XSTS
+			XBoxLiveAuthenticationResponse minecraftXstsResponse = HttpRequest
+					.POST("https://xsts.auth.xboxlive.com/xsts/authorize")
+					.json(mapOf(
+							pair("Properties",
+									mapOf(pair("SandboxId", "RETAIL"),
+											pair("UserTokens", Collections.singletonList(xboxResponse.token)))),
+							pair("RelyingParty", "rp://api.minecraftservices.com/"), pair("TokenType", "JWT")))
+					.ignoreHttpErrorCode(401).getJson(XBoxLiveAuthenticationResponse.class);
 
-	        getUhs(minecraftXstsResponse, uhs);
+			getUhs(minecraftXstsResponse, uhs);
 
-	        // Authenticate with Minecraft
-	        MinecraftLoginWithXBoxResponse minecraftResponse = HttpRequest
-	                .POST("https://api.minecraftservices.com/authentication/login_with_xbox")
-	                .json(mapOf(pair("identityToken", "XBL3.0 x=" + uhs + ";" + minecraftXstsResponse.token)))
-	                .accept("application/json").getJson(MinecraftLoginWithXBoxResponse.class);
+			// Authenticate with Minecraft
+			MinecraftLoginWithXBoxResponse minecraftResponse = HttpRequest
+					.POST("https://api.minecraftservices.com/authentication/login_with_xbox")
+					.json(mapOf(pair("identityToken", "XBL3.0 x=" + uhs + ";" + minecraftXstsResponse.token)))
+					.accept("application/json").getJson(MinecraftLoginWithXBoxResponse.class);
 
-	        // long notAfter = minecraftResponse.expiresIn * 1000L + System.currentTimeMillis();
+			// long notAfter = minecraftResponse.expiresIn * 1000L +
+			// System.currentTimeMillis();
 
-	        // Get Minecraft Account UUID
-	        MinecraftProfileResponse profileResponse = getMinecraftProfile(minecraftResponse.tokenType, minecraftResponse.accessToken);
-	        if (profileResponse.error != null) {
-	            throw new RemoteAuthenticationException(profileResponse.error, profileResponse.errorMessage, profileResponse.developerMessage);
-	        }
-	        
+			// Get Minecraft Account UUID
+			MinecraftProfileResponse profileResponse = getMinecraftProfile(minecraftResponse.tokenType,
+					minecraftResponse.accessToken);
+			if (profileResponse.error != null) {
+				throw new RemoteAuthenticationException(profileResponse.error, profileResponse.errorMessage,
+						profileResponse.developerMessage);
+			}
+
 			// no need to get accessToken for this
 			return success(profileResponse.id.toString(), profileResponse.name);
-		} catch(Throwable t) {
+		} catch (Throwable t) {
 			t.printStackTrace();
 			return fail(t.getClass().getName() + ": " + (t.getMessage() == null ? "" : t.getMessage()));
 		}
@@ -239,270 +243,275 @@ public class AuthUtil {
 		return yggdrasil(email, password, "https://authserver.mojang.com/authenticate");
 	}
 
-    private static MinecraftProfileResponse getMinecraftProfile(String tokenType, String accessToken)
-            throws IOException, AuthenticationException {
-        HttpURLConnection conn = HttpRequest.GET("https://api.minecraftservices.com/minecraft/profile")
-                .authorization(tokenType, accessToken)
-                .createConnection();
-        int responseCode = conn.getResponseCode();
-        if (responseCode == HTTP_NOT_FOUND) {
-            throw new NoMinecraftJavaEditionProfileException();
-        } else if (responseCode != 200) {
-            throw new ResponseCodeException(new URL("https://api.minecraftservices.com/minecraft/profile"), responseCode);
-        }
+	private static MinecraftProfileResponse getMinecraftProfile(String tokenType, String accessToken)
+			throws IOException, AuthenticationException {
+		HttpURLConnection conn = HttpRequest.GET("https://api.minecraftservices.com/minecraft/profile")
+				.authorization(tokenType, accessToken).createConnection();
+		int responseCode = conn.getResponseCode();
+		if (responseCode == HTTP_NOT_FOUND) {
+			throw new NoMinecraftJavaEditionProfileException();
+		} else if (responseCode != 200) {
+			throw new ResponseCodeException(new URL("https://api.minecraftservices.com/minecraft/profile"),
+					responseCode);
+		}
 
-        String result = NetworkUtils.readData(conn);
-        return JsonUtils.fromNonNullJson(result, MinecraftProfileResponse.class);
-    }
+		String result = NetworkUtils.readData(conn);
+		return JsonUtils.fromNonNullJson(result, MinecraftProfileResponse.class);
+	}
 
-    private static String getUhs(XBoxLiveAuthenticationResponse response, String existingUhs) throws AuthenticationException {
-        if (response.errorCode != 0) {
-            throw new XboxAuthorizationException(response.errorCode, response.redirectUrl);
-        }
+	private static String getUhs(XBoxLiveAuthenticationResponse response, String existingUhs)
+			throws AuthenticationException {
+		if (response.errorCode != 0) {
+			throw new XboxAuthorizationException(response.errorCode, response.redirectUrl);
+		}
 
-        if (response.displayClaims == null || response.displayClaims.xui == null || response.displayClaims.xui.size() == 0 || !response.displayClaims.xui.get(0).containsKey("uhs")) {
-            Logger.getGlobal().warning("Unrecognized xbox authorization response " + GSON.toJson(response));
-            throw new NoXuiException();
-        }
+		if (response.displayClaims == null || response.displayClaims.xui == null
+				|| response.displayClaims.xui.size() == 0 || !response.displayClaims.xui.get(0).containsKey("uhs")) {
+			Logger.getGlobal().warning("Unrecognized xbox authorization response " + GSON.toJson(response));
+			throw new NoXuiException();
+		}
 
-        String uhs = (String) response.displayClaims.xui.get(0).get("uhs");
-        if (existingUhs != null) {
-            if (!Objects.equals(uhs, existingUhs)) {
-                throw new ServerResponseMalformedException("uhs mismatched");
-            }
-        }
-        return uhs;
-    }
-    /**
-    *
-    * @author huangyuhui
-    */
-   public static class AuthenticationException extends Exception {
-       /**
+		String uhs = (String) response.displayClaims.xui.get(0).get("uhs");
+		if (existingUhs != null) {
+			if (!Objects.equals(uhs, existingUhs)) {
+				throw new ServerResponseMalformedException("uhs mismatched");
+			}
+		}
+		return uhs;
+	}
+
+	/**
+	 *
+	 * @author huangyuhui
+	 */
+	public static class AuthenticationException extends Exception {
+		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
 
-	public AuthenticationException() {
-       }
+		public AuthenticationException() {
+		}
 
-       public AuthenticationException(String message) {
-           super(message);
-       }
+		public AuthenticationException(String message) {
+			super(message);
+		}
 
-       public AuthenticationException(String message, Throwable cause) {
-           super(message, cause);
-       }
+		public AuthenticationException(String message, Throwable cause) {
+			super(message, cause);
+		}
 
-       public AuthenticationException(Throwable cause) {
-           super(cause);
-       }
-   }
-   public static class RemoteAuthenticationException extends AuthenticationException {
-
-	    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-		private final String name;
-	    private final String message;
-	    private final String cause;
-
-	    public RemoteAuthenticationException(String name, String message, String cause) {
-	        super(buildMessage(name, message, cause));
-	        this.name = name;
-	        this.message = message;
-	        this.cause = cause;
-	    }
-
-	    public String getRemoteName() {
-	        return name;
-	    }
-
-	    public String getRemoteMessage() {
-	        return message;
-	    }
-
-	    public String getRemoteCause() {
-	        return cause;
-	    }
-
-	    private static String buildMessage(String name, String message, String cause) {
-	        StringBuilder builder = new StringBuilder(name);
-	        if (message != null)
-	            builder.append(": ").append(message);
-
-	        if (cause != null)
-	            builder.append(": ").append(cause);
-
-	        return builder.toString();
-	    }
+		public AuthenticationException(Throwable cause) {
+			super(cause);
+		}
 	}
-    public static class XboxAuthorizationException extends AuthenticationException {
-        /**
+
+	public static class RemoteAuthenticationException extends AuthenticationException {
+
+		/**
+		* 
+		*/
+		private static final long serialVersionUID = 1L;
+		private final String name;
+		private final String message;
+		private final String cause;
+
+		public RemoteAuthenticationException(String name, String message, String cause) {
+			super(buildMessage(name, message, cause));
+			this.name = name;
+			this.message = message;
+			this.cause = cause;
+		}
+
+		public String getRemoteName() {
+			return name;
+		}
+
+		public String getRemoteMessage() {
+			return message;
+		}
+
+		public String getRemoteCause() {
+			return cause;
+		}
+
+		private static String buildMessage(String name, String message, String cause) {
+			StringBuilder builder = new StringBuilder(name);
+			if (message != null)
+				builder.append(": ").append(message);
+
+			if (cause != null)
+				builder.append(": ").append(cause);
+
+			return builder.toString();
+		}
+	}
+
+	public static class XboxAuthorizationException extends AuthenticationException {
+		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
 		private final long errorCode;
-        private final String redirect;
+		private final String redirect;
 
-        public XboxAuthorizationException(long errorCode, String redirect) {
-            this.errorCode = errorCode;
-            this.redirect = redirect;
-        }
+		public XboxAuthorizationException(long errorCode, String redirect) {
+			this.errorCode = errorCode;
+			this.redirect = redirect;
+		}
 
-        public long getErrorCode() {
-            return errorCode;
-        }
+		public long getErrorCode() {
+			return errorCode;
+		}
 
-        public String getRedirect() {
-            return redirect;
-        }
+		public String getRedirect() {
+			return redirect;
+		}
 
-        public static final long MISSING_XBOX_ACCOUNT = 2148916233L;
-        public static final long COUNTRY_UNAVAILABLE = 2148916235L;
-        public static final long ADD_FAMILY = 2148916238L;
-    }
-    
-    public static class ServerResponseMalformedException extends AuthenticationException {
-        /**
+		public static final long MISSING_XBOX_ACCOUNT = 2148916233L;
+		public static final long COUNTRY_UNAVAILABLE = 2148916235L;
+		public static final long ADD_FAMILY = 2148916238L;
+	}
+
+	public static class ServerResponseMalformedException extends AuthenticationException {
+		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
 
 		public ServerResponseMalformedException() {
-        }
+		}
 
-        public ServerResponseMalformedException(String message) {
-            super(message);
-        }
+		public ServerResponseMalformedException(String message) {
+			super(message);
+		}
 
-        public ServerResponseMalformedException(String message, Throwable cause) {
-            super(message, cause);
-        }
+		public ServerResponseMalformedException(String message, Throwable cause) {
+			super(message, cause);
+		}
 
-        public ServerResponseMalformedException(Throwable cause) {
-            super(cause);
-        }
-    }
-    
-    public static class NoMinecraftJavaEditionProfileException extends AuthenticationException {
+		public ServerResponseMalformedException(Throwable cause) {
+			super(cause);
+		}
+	}
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-    }
-
-    public static class NoXuiException extends AuthenticationException {
+	public static class NoMinecraftJavaEditionProfileException extends AuthenticationException {
 
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
-    }
+	}
 
-    private static class XBoxLiveAuthenticationResponseDisplayClaims {
-        List<Map<Object, Object>> xui;
-    }
+	public static class NoXuiException extends AuthenticationException {
 
-    private static class MicrosoftErrorResponse {
-        @SerializedName("XErr")
-        long errorCode;
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+	}
 
-        @SerializedName("Message")
-        String message;
+	private static class XBoxLiveAuthenticationResponseDisplayClaims {
+		List<Map<Object, Object>> xui;
+	}
 
-        @SerializedName("Redirect")
-        String redirectUrl;
-    }
+	private static class MicrosoftErrorResponse {
+		@SerializedName("XErr")
+		long errorCode;
 
-    /**
-     * Success Response: { "IssueInstant":"2020-12-07T19:52:08.4463796Z",
-     * "NotAfter":"2020-12-21T19:52:08.4463796Z", "Token":"token", "DisplayClaims":{
-     * "xui":[ { "uhs":"userhash" } ] } }
-     * <p>
-     * Error response: { "Identity":"0", "XErr":2148916238, "Message":"",
-     * "Redirect":"https://start.ui.xboxlive.com/AddChildToFamily" }
-     * <p>
-     * XErr Candidates: 2148916233 = missing XBox account 2148916238 = child account
-     * not linked to a family
-     */
-    private static class XBoxLiveAuthenticationResponse extends MicrosoftErrorResponse {
-        @SerializedName("IssueInstant")
-        String issueInstant;
+		@SerializedName("Message")
+		String message;
 
-        @SerializedName("NotAfter")
-        String notAfter;
+		@SerializedName("Redirect")
+		String redirectUrl;
+	}
 
-        @SerializedName("Token")
-        String token;
+	/**
+	 * Success Response: { "IssueInstant":"2020-12-07T19:52:08.4463796Z",
+	 * "NotAfter":"2020-12-21T19:52:08.4463796Z", "Token":"token", "DisplayClaims":{
+	 * "xui":[ { "uhs":"userhash" } ] } }
+	 * <p>
+	 * Error response: { "Identity":"0", "XErr":2148916238, "Message":"",
+	 * "Redirect":"https://start.ui.xboxlive.com/AddChildToFamily" }
+	 * <p>
+	 * XErr Candidates: 2148916233 = missing XBox account 2148916238 = child account
+	 * not linked to a family
+	 */
+	private static class XBoxLiveAuthenticationResponse extends MicrosoftErrorResponse {
+		@SerializedName("IssueInstant")
+		String issueInstant;
 
-        @SerializedName("DisplayClaims")
-        XBoxLiveAuthenticationResponseDisplayClaims displayClaims;
-    }
+		@SerializedName("NotAfter")
+		String notAfter;
 
-    private static class MinecraftLoginWithXBoxResponse {
-        @SerializedName("username")
-        String username;
+		@SerializedName("Token")
+		String token;
 
-        @SerializedName("roles")
-        List<String> roles;
+		@SerializedName("DisplayClaims")
+		XBoxLiveAuthenticationResponseDisplayClaims displayClaims;
+	}
 
-        @SerializedName("access_token")
-        String accessToken;
+	private static class MinecraftLoginWithXBoxResponse {
+		@SerializedName("username")
+		String username;
 
-        @SerializedName("token_type")
-        String tokenType;
+		@SerializedName("roles")
+		List<String> roles;
 
-        @SerializedName("expires_in")
-        int expiresIn;
-    }
+		@SerializedName("access_token")
+		String accessToken;
 
-    public static class MinecraftProfileResponseSkin implements Validation {
-        public String id;
-        public String state;
-        public String url;
-        public String variant; // CLASSIC, SLIM
-        public String alias;
+		@SerializedName("token_type")
+		String tokenType;
 
-        @Override
-        public void validate() throws JsonParseException, TolerableValidationException {
-            Validation.requireNonNull(id, "id cannot be null");
-            Validation.requireNonNull(state, "state cannot be null");
-            Validation.requireNonNull(url, "url cannot be null");
-            Validation.requireNonNull(variant, "variant cannot be null");
-        }
-    }
+		@SerializedName("expires_in")
+		int expiresIn;
+	}
 
-    public static class MinecraftProfileResponseCape {
+	public static class MinecraftProfileResponseSkin implements Validation {
+		public String id;
+		public String state;
+		public String url;
+		public String variant; // CLASSIC, SLIM
+		public String alias;
 
-    }
+		@Override
+		public void validate() throws JsonParseException, TolerableValidationException {
+			Validation.requireNonNull(id, "id cannot be null");
+			Validation.requireNonNull(state, "state cannot be null");
+			Validation.requireNonNull(url, "url cannot be null");
+			Validation.requireNonNull(variant, "variant cannot be null");
+		}
+	}
 
-    public static class MinecraftProfileResponse extends MinecraftErrorResponse implements Validation {
-        @SerializedName("id")
-        UUID id;
-        @SerializedName("name")
-        String name;
-        @SerializedName("skins")
-        List<MinecraftProfileResponseSkin> skins;
-        @SerializedName("capes")
-        List<MinecraftProfileResponseCape> capes;
+	public static class MinecraftProfileResponseCape {
 
-        @Override
-        public void validate() throws JsonParseException, TolerableValidationException {
-            Validation.requireNonNull(id, "id cannot be null");
-            Validation.requireNonNull(name, "name cannot be null");
-            Validation.requireNonNull(skins, "skins cannot be null");
-            Validation.requireNonNull(capes, "capes cannot be null");
-        }
-    }
+	}
 
-    private static class MinecraftErrorResponse {
-        public String path;
-        public String errorType;
-        public String error;
-        public String errorMessage;
-        public String developerMessage;
-    }
+	public static class MinecraftProfileResponse extends MinecraftErrorResponse implements Validation {
+		@SerializedName("id")
+		UUID id;
+		@SerializedName("name")
+		String name;
+		@SerializedName("skins")
+		List<MinecraftProfileResponseSkin> skins;
+		@SerializedName("capes")
+		List<MinecraftProfileResponseCape> capes;
+
+		@Override
+		public void validate() throws JsonParseException, TolerableValidationException {
+			Validation.requireNonNull(id, "id cannot be null");
+			Validation.requireNonNull(name, "name cannot be null");
+			Validation.requireNonNull(skins, "skins cannot be null");
+			Validation.requireNonNull(capes, "capes cannot be null");
+		}
+	}
+
+	private static class MinecraftErrorResponse {
+		public String path;
+		public String errorType;
+		public String error;
+		public String errorMessage;
+		public String developerMessage;
+	}
 }
